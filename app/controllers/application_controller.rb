@@ -17,13 +17,26 @@ class ApplicationController < Sinatra::Base
   end
 
   post "/signup" do
-    #your code here
-
+    #binding.pry
+    user = User.new(username: params[:username], password: params[:password])
+    # because of hash_secure_password
+			# we won't be able to save empty password
+    if user.save
+      redirect '/login'
+    else
+      redirect '/failure'
+    end
   end
 
   get '/account' do
-    @user = User.find(session[:user_id])
-    erb :account
+    #binding.pry
+    if logged_in?
+      @user = current_user
+      erb :account
+    else
+      redirect '/login'
+    end
+
   end
 
 
@@ -32,7 +45,16 @@ class ApplicationController < Sinatra::Base
   end
 
   post "/login" do
-    ##your code here
+    #binding.pry
+    user = User.find_by_username(params[:username])
+
+    if user && user.authenticate(params[:password])
+        session[:user_id] = user.id
+		    redirect "/account"
+    else
+        redirect '/failure'
+    end
+
   end
 
   get "/failure" do
